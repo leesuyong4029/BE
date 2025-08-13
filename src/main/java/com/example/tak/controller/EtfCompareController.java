@@ -10,6 +10,10 @@ import com.example.tak.service.EtfDetailService;
 import com.example.tak.service.EtfGetListService;
 import com.example.tak.service.EtfInfoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -52,11 +56,12 @@ public class EtfCompareController {
         return ApiResponse.onSuccess(response);
     }
 
+    // 비교하기 목록 조회
     @GetMapping("/result")
-    public ApiResponse<List<EtfResponseDTO.CompareEtfDto>> getEtfInfo(@RequestParam("filter") String filter)
+    public ApiResponse<List<EtfResponseDTO.CompareEtfDto>> getEtfInfo(@RequestParam("filter") String filter, @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC)Pageable pageable)
     {
-        List<EtfResponseDTO.CompareEtfDto> etfList = etfGetListService.getEtfsByFilter(filter);
-        return ApiResponse.onSuccess(etfList);
+        Page<EtfResponseDTO.CompareEtfDto> page = etfGetListService.getEtfsByFilter(filter, pageable);
+        return ApiResponse.onSuccess(page.getContent());
 
     }
 

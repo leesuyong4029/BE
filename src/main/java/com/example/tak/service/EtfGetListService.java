@@ -8,68 +8,65 @@ import com.example.tak.domain.ETF;
 import com.example.tak.dto.response.CurrentPriceDataDTO;
 import com.example.tak.dto.response.EtfResponseDTO;
 import com.example.tak.repository.EtfDataRepository;
-import com.example.tak.repository.EtfRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class EtfGetListService {
-    private final EtfRepository etfRepository;
     private final UsPriceService usPriceService;
     private final PriceService priceService;
     private final EtfDataRepository etfDataRepository;
 
-    public List<EtfResponseDTO.CompareEtfDto> getEtfsByFilter(String filter) {
-        List<ETF> etfs;
+    public Page<EtfResponseDTO.CompareEtfDto> getEtfsByFilter(String filter, Pageable pageable) {
+        Page<ETF> etfs;
 
         try {
             Category category = Category.fromName(filter);
-            etfs = etfDataRepository.findByCategory(category);
+            etfs = etfDataRepository.findByCategory(category, pageable);
         } catch (IllegalArgumentException e) {
             try {
                 Nation nation = Nation.fromName(filter);
 
                 if (nation == Nation.KOREA) {
-                    etfs = etfDataRepository.findByTickerIsNull();
+                    etfs = etfDataRepository.findByTickerIsNull(pageable);
                 } else if (nation == Nation.US) {
-                    etfs = etfDataRepository.findByTickerIsNotNull();
+                    etfs = etfDataRepository.findByTickerIsNotNull(pageable);
                 } else {
-                    return new ArrayList<>();
+                    return Page.empty(pageable);
                 }
             } catch (IllegalArgumentException ex) {
-                return new ArrayList<>();
+                return Page.empty(pageable);
             }
         }
-        return toCompareEtfDto(etfs);
+        return etfs.map(this::toCompareEtfDto);
     }
 
-    private List<EtfResponseDTO.CompareEtfDto> toCompareEtfDto(List<ETF> etfs) {
-        List<EtfResponseDTO.CompareEtfDto> response = new ArrayList<>();
+    private EtfResponseDTO.CompareEtfDto toCompareEtfDto(ETF etf) {
+        CurrentPriceDataDTO priceData = getCurrentPrice(etf);
 
-        for (ETF etf : etfs) {
-            CurrentPriceDataDTO priceData = getCurrentPrice(etf);
+        double prdyCtrt = priceData.getPrdyCtrt() == null ? 0.0 : priceData.getPrdyCtrt();
+        String profitRate = String.format("%.2f%%", prdyCtrt);
+        boolean isPositive = prdyCtrt >= 0;
 
-            String profitRate = String.format("%.2f%%", priceData.getPrdyCtrt());
-            boolean isPositive = priceData.getPrdyCtrt() >= 0;
-            response.add(EtfResponseDTO.CompareEtfDto.builder()
-                    .etfId(etf.getId())
-                    .category(etf.getCategory())
-                    .sector(etf.getSector())
-                    .name(etf.getName())
-                    .fee(etf.getFee())
-                    .ticker(etf.getTicker())
-                    .etfNum(etf.getEtfNum())
-                    .price(priceData.getCurrentPrice().longValue())
-                    .profitRate(profitRate)
-                    .isPositive(isPositive)
-                    .build());
-        }
-        return response;
+        Long priceLong = priceData.getCurrentPrice() == null
+                ? null
+                : priceData.getCurrentPrice().longValue();
 
+        return EtfResponseDTO.CompareEtfDto.builder()
+                .etfId(etf.getId())
+                .category(etf.getCategory())
+                .sector(etf.getSector())
+                .name(etf.getName())
+                .fee(etf.getFee())
+                .ticker(etf.getTicker())
+                .etfNum(etf.getEtfNum())
+                .price(priceLong)
+                .profitRate(profitRate)
+                .isPositive(isPositive)
+                .build();
     }
 
     private CurrentPriceDataDTO getCurrentPrice(ETF etf) {

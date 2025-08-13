@@ -1,8 +1,13 @@
 package com.example.tak.controller;
 
+import com.example.tak.config.response.ApiResponse;
 import com.example.tak.dto.response.ETFInvestListResponseDTO;
 import com.example.tak.service.ETFInvestListService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +25,9 @@ public class ETFInvestListController {
 
 
     @GetMapping("/api/invest")
-    public ResponseEntity<List<ETFInvestListResponseDTO>> getInvestList(@RequestParam(name = "filter") String filter) {
-        List<ETFInvestListResponseDTO> etfInvestList = etfInvestListService.getETFInvestList(filter);
-        return ResponseEntity.ok(etfInvestList);
+    public ApiResponse<List<ETFInvestListResponseDTO>> getInvestList(@RequestParam(name = "filter") String filter, @PageableDefault(size = 6, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        Page<ETFInvestListResponseDTO> page = etfInvestListService.getETFInvestList(filter, pageable);
+        return ApiResponse.onSuccess(page.getContent());
     }
 
 }

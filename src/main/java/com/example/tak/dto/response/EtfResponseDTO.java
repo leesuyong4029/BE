@@ -14,7 +14,7 @@ public class EtfResponseDTO {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class CompareEtfDto {
+    public static class     CompareEtfDto {
         private Long etfId;
         private Category category;
         private String name;
@@ -33,11 +33,5 @@ public class EtfResponseDTO {
     @AllArgsConstructor
     public static class CompareEtfListPageDto {
         private List<CompareEtfDto> compareEtfDtoList;
-        private int totalPages;
-        private int totalElements;
-        private boolean isFirst;
-        private boolean isLast;
-        private int number;
-        private int numberOfElements;
     }
 }
