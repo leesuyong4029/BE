@@ -13,6 +13,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Table(
+        name = "etf",
+        indexes = {
+                @Index(name ="idx_etf_sector", columnList = "sector"),
+                @Index(name = "idx_etf_category", columnList = "category"),
+                @Index(name = "idx_etf_nation", columnList = "nation"),
+                @Index(name = "idx_etf_name", columnList = "name")
+        }
+)
 @Entity
 @Getter
 @Builder

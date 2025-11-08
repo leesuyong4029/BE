@@ -1,10 +1,12 @@
 package com.example.tak.dto.response;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 @Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CurrentPriceDataDTO {
     private Double currentPrice;
     private String prdyVrssSign;
